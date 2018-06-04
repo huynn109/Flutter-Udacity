@@ -1,7 +1,13 @@
 import 'package:ex_03_category_route/category.dart';
+import 'package:ex_03_category_route/unit.dart';
 import 'package:flutter/material.dart';
 
-class CategoryRoute extends StatelessWidget {
+class CategoryRoute extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _MyCategoryRoutePageState();
+}
+
+class _MyCategoryRoutePageState extends State<CategoryRoute> {
   var _backgroundColor = Colors.white;
   static const _categoryNames = <String>[
     'Length',
@@ -25,6 +31,17 @@ class CategoryRoute extends StatelessWidget {
     Colors.red,
   ];
 
+  /// Returns a list of mock [Unit]s.
+  List<Unit> _retrieveUnitList(String categoryName) {
+    return List.generate(10, (int i) {
+      i += 1;
+      return Unit(
+        name: '$categoryName Unit $i',
+        conversion: i.toDouble(),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final appbar = AppBar(
@@ -45,6 +62,7 @@ class CategoryRoute extends StatelessWidget {
         name: _categoryNames[i],
         color: _baseColors[i],
         iconLocation: Icons.cake,
+        units: _retrieveUnitList(_categoryNames[i]),
       ));
     }
     final listView = Container(
