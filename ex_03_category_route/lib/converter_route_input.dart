@@ -72,9 +72,9 @@ class ConverterRouteInputState extends State<ConverterRouteInput> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           TextField(
-            style: Theme.of(context).textTheme.display1,
+            style: Theme.of(context).textTheme.body1,
             decoration: InputDecoration(
-              labelStyle: Theme.of(context).textTheme.display1,
+              labelStyle: Theme.of(context).textTheme.body1,
               errorText: _showValidationError ? 'Invalid number entered' : null,
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -104,13 +104,13 @@ class ConverterRouteInputState extends State<ConverterRouteInput> {
           InputDecorator(
             child: Text(
               _convertedValue,
-              style: Theme.of(context).textTheme.display1,
+              style: Theme.of(context).textTheme.body1,
             ),
             decoration: InputDecoration(
               labelText: 'Output',
-              labelStyle: Theme.of(context).textTheme.display1,
+              labelStyle: Theme.of(context).textTheme.body1,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(0.0),
+                borderRadius: BorderRadius.circular(8.0),
               ),
             ),
           ),
@@ -204,6 +204,7 @@ class ConverterRouteInputState extends State<ConverterRouteInput> {
       margin: EdgeInsets.only(top: 16.0),
       decoration: BoxDecoration(
           color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(8.0),
           border: Border.all(
             color: Colors.grey[400],
             width: 1.0,
@@ -218,7 +219,7 @@ class ConverterRouteInputState extends State<ConverterRouteInput> {
               value: currentValue,
               items: _unitMenuItems,
               onChanged: onChanged,
-              style: Theme.of(context).textTheme.title,
+              style: Theme.of(context).textTheme.body1,
             ),
           ),
         ),
