@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:ex_04_backdrop/category.dart';
 import 'package:ex_04_backdrop/unit.dart';
 import 'package:flutter/material.dart';
-import 'category_tile.dart';
+
 import 'backdrop.dart';
+import 'category_tile.dart';
 import 'unit_converter.dart';
 
 class CategoryRoute extends StatefulWidget {
@@ -19,16 +23,16 @@ class _CategoryRouteState extends State<CategoryRoute> {
   Category _currentCategory;
 
   final _categories = <Category>[];
-  static const _categoryNames = <String>[
-    'Length',
-    'Area',
-    'Volume',
-    'Mass',
-    'Time',
-    'Digital Storage',
-    'Energy',
-    'Currency',
-  ];
+//  static const _categoryNames = <String>[
+//    'Length',
+//    'Area',
+//    'Volume',
+//    'Mass',
+//    'Time',
+//    'Digital Storage',
+//    'Energy',
+//    'Currency',
+//  ];
 
   static const _baseColors = <ColorSwatch>[
     ColorSwatch(0xFF6AB7A8, {
@@ -65,23 +69,59 @@ class _CategoryRouteState extends State<CategoryRoute> {
       'error': Color(0xFF912D2D),
     }),
   ];
-
   @override
-  void initState() {
-    super.initState();
-    for (int i = 0; i < _categoryNames.length; i++) {
-      var category = Category(
-        name: _categoryNames[i],
-        color: _baseColors[i],
-        iconLocation: Icons.cake,
-        units: _retrieveUnitList(_categoryNames[i]),
-      );
-      if (i == 0) {
-        _defaultCategory = category;
-      }
-      _categories.add(category);
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
+    // We have static unit conversions located in our
+    // assets/data/regular_units.json
+    if (_categories.isEmpty) {
+      await _retrieveLocalCategories();
     }
   }
+
+  Future<void> _retrieveLocalCategories() async {
+    final json = DefaultAssetBundle
+        .of(context)
+        .loadString('assets/data/regular_units.json');
+    final data = JsonDecoder().convert(await json);
+    if (data is! Map) {
+      throw ('Data retrieved from API is not a Map');
+    }
+    var categoryIndex = 0;
+    data.keys.forEach((key) {
+      final List<Unit> units =
+      data[key].map<Unit>((dynamic data) => Unit.fromJson(data)).toList();
+      var category = Category(
+        name: key,
+        units: units,
+        color: _baseColors[categoryIndex],
+        iconLocation: Icons.cake,
+      );
+      setState(() {
+        if (categoryIndex == 0) {
+          _defaultCategory = category;
+        }
+        _categories.add(category);
+      });
+      categoryIndex += 1;
+    });
+  }
+//  @override
+//  void initState() {
+//    super.initState();
+//    for (int i = 0; i < _categoryNames.length; i++) {
+//      var category = Category(
+//        name: _categoryNames[i],
+//        color: _baseColors[i],
+//        iconLocation: Icons.cake,
+//        units: _retrieveUnitList(_categoryNames[i]),
+//      );
+//      if (i == 0) {
+//        _defaultCategory = category;
+//      }
+//      _categories.add(category);
+//    }
+//  }
 
   // TODO: Fill out this function
   /// Function to call when a [Category] is tapped.
@@ -121,6 +161,16 @@ class _CategoryRouteState extends State<CategoryRoute> {
 
   @override
   Widget build(BuildContext context) {
+    if (_categories.isEmpty) {
+      return Center(
+        child: Container(
+          height: 40.0,
+          width: 40.0,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     assert(debugCheckHasMediaQuery(context));
     final listView = Padding(
       padding: EdgeInsets.only(
@@ -144,13 +194,13 @@ class _CategoryRouteState extends State<CategoryRoute> {
   }
 
   /// Returns a list of mock [Unit]s.
-  List<Unit> _retrieveUnitList(String categoryName) {
-    return List.generate(10, (int i) {
-      i += 1;
-      return Unit(
-        name: '$categoryName Unit $i',
-        conversion: i.toDouble(),
-      );
-    });
-  }
+//  List<Unit> _retrieveUnitList(String categoryName) {
+//    return List.generate(10, (int i) {
+//      i += 1;
+//      return Unit(
+//        name: '$categoryName Unit $i',
+//        conversion: i.toDouble(),
+//      );
+//    });
+//  }
 }
