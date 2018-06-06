@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:ex_04_backdrop/api.dart';
 import 'package:ex_04_backdrop/category.dart';
 import 'package:ex_04_backdrop/unit.dart';
 import 'package:flutter/material.dart';
 
 const _padding = EdgeInsets.all(16.0);
+
 class UnitConverter extends StatefulWidget {
   /// The current [Category] for unit conversion.
   final Category category;
@@ -26,6 +27,7 @@ class _UnitConverterState extends State<UnitConverter> {
   String _convertedValue = '';
   List<DropdownMenuItem> _unitMenuItems;
   bool _showValidationError = false;
+  bool _showErrorUi = false;
 
   @override
   void initState() {
@@ -33,7 +35,6 @@ class _UnitConverterState extends State<UnitConverter> {
     _createDropdownMenuItems();
     _setDefaults();
   }
-
 
   @override
   void didUpdateWidget(UnitConverter oldWidget) {
@@ -92,11 +93,26 @@ class _UnitConverterState extends State<UnitConverter> {
     return outputNum;
   }
 
-  void _updateConversion() {
-    setState(() {
-      _convertedValue =
-          _format(_inputValue * (_toValue.conversion / _fromValue.conversion));
-    });
+  Future<void> _updateConversion() async {
+    if (widget.category.name == apiCategory['name']) {
+      final api = Api();
+      final conversion = await api.convert(apiCategory['route'],
+          _inputValue.toString(), _fromValue.name, _toValue.name);
+      if (conversion == null) {
+        setState(() {
+          _showErrorUi = true;
+        });
+      } else {
+        setState(() {
+          _convertedValue = _format(conversion);
+        });
+      }
+    } else {
+      setState(() {
+        _convertedValue = _format(
+            _inputValue * (_toValue.conversion / _fromValue.conversion));
+      });
+    }
   }
 
   void _updateInputValue(String input) {
@@ -121,7 +137,7 @@ class _UnitConverterState extends State<UnitConverter> {
 
   Unit _getUnit(String unitName) {
     return widget.category.units.firstWhere(
-          (Unit unit) {
+      (Unit unit) {
         return unit.name == unitName;
       },
       orElse: null,
@@ -161,8 +177,8 @@ class _UnitConverterState extends State<UnitConverter> {
       child: Theme(
         // This sets the color of the [DropdownMenuItem]
         data: Theme.of(context).copyWith(
-          canvasColor: Colors.grey[50],
-        ),
+              canvasColor: Colors.grey[50],
+            ),
         child: DropdownButtonHideUnderline(
           child: ButtonTheme(
             alignedDropdown: true,
@@ -180,6 +196,37 @@ class _UnitConverterState extends State<UnitConverter> {
 
   @override
   Widget build(BuildContext context) {
+    if(widget.category.units == null || (widget.category.name ==
+        apiCategory['name'] && _showErrorUi)){
+      return SingleChildScrollView(
+        child: Container(
+          margin: _padding,
+          padding: _padding,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            color: widget.category.color['error'],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 180.0,
+                color: Colors.white,
+              ),
+              Text(
+                "Oh no! We can't connect right now!",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headline.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     final input = Padding(
       padding: _padding,
       child: Column(
@@ -265,6 +312,4 @@ class _UnitConverterState extends State<UnitConverter> {
       ),
     );
   }
-
-
 }

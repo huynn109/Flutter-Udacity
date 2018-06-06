@@ -5,6 +5,7 @@ import 'package:ex_04_backdrop/category.dart';
 import 'package:ex_04_backdrop/unit.dart';
 import 'package:flutter/material.dart';
 
+import 'api.dart';
 import 'backdrop.dart';
 import 'category_tile.dart';
 import 'unit_converter.dart';
@@ -23,6 +24,7 @@ class _CategoryRouteState extends State<CategoryRoute> {
   Category _currentCategory;
 
   final _categories = <Category>[];
+
 //  static const _categoryNames = <String>[
 //    'Length',
 //    'Area',
@@ -88,6 +90,7 @@ class _CategoryRouteState extends State<CategoryRoute> {
     // assets/data/regular_units.json
     if (_categories.isEmpty) {
       await _retrieveLocalCategories();
+      await _retrieveApiCategory();
     }
   }
 
@@ -102,7 +105,7 @@ class _CategoryRouteState extends State<CategoryRoute> {
     var categoryIndex = 0;
     data.keys.forEach((key) {
       final List<Unit> units =
-      data[key].map<Unit>((dynamic data) => Unit.fromJson(data)).toList();
+          data[key].map<Unit>((dynamic data) => Unit.fromJson(data)).toList();
       var category = Category(
         name: key,
         units: units,
@@ -118,6 +121,39 @@ class _CategoryRouteState extends State<CategoryRoute> {
       categoryIndex += 1;
     });
   }
+
+  /// Retrieves a [Category] and its [Unit]s from an API on the web
+  Future<void> _retrieveApiCategory() async {
+    // Add a placeholder while we fetch the Currency category using the API
+    setState(() {
+      _categories.add(Category(
+        name: apiCategory['name'],
+        units: [],
+        color: _baseColors.last,
+        iconLocation: _icons.last,
+      ));
+    });
+    final api = Api();
+    final jsonUnits = await api.getUnits(apiCategory['route']);
+    // If the API errors out or we have no internet connection, this category
+    // remains in placeholder mode (disabled)
+    if (jsonUnits != null) {
+      final units = <Unit>[];
+      for (var unit in jsonUnits) {
+        units.add(Unit.fromJson(unit));
+      }
+      setState(() {
+        _categories.removeLast();
+        _categories.add(Category(
+          name: apiCategory['name'],
+          units: units,
+          color: _baseColors.last,
+          iconLocation: _icons.last,
+        ));
+      });
+    }
+  }
+
 //  @override
 //  void initState() {
 //    super.initState();
