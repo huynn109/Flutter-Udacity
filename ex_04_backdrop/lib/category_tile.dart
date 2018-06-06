@@ -13,12 +13,12 @@ class CategoryTile extends StatelessWidget {
   /// conversions.
   ///
   /// Tapping on it brings you to the unit converter.
+
   const CategoryTile({
     Key key,
     @required this.category,
-    @required this.onTap,
+    this.onTap,
   })  : assert(category != null),
-        assert(onTap != null),
         super(key: key);
 
   /// Navigates to the [UnitConverter].
@@ -47,14 +47,15 @@ class CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color:
+          onTap == null ? Color.fromRGBO(50, 50, 50, 0.2) : Colors.transparent,
       child: Container(
         height: _rowHeight,
         child: InkWell(
           borderRadius: _borderRadius,
           highlightColor: category.color['hightlight'],
           splashColor: category.color['splash'],
-          onTap: () => _navigateToConverter(context),
+          onTap: onTap == null ? null : () => onTap(category),
           child: Padding(
             padding: EdgeInsets.all(8.0),
             child: Row(

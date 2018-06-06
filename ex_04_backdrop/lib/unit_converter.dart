@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 const _padding = EdgeInsets.all(16.0);
 
+/// [UnitConverter] where users can input amounts to convert in one [Unit]
+/// and retrieve the conversion in another [Unit] for a specific [Category].
 class UnitConverter extends StatefulWidget {
   /// The current [Category] for unit conversion.
   final Category category;
@@ -27,7 +29,8 @@ class _UnitConverterState extends State<UnitConverter> {
   String _convertedValue = '';
   List<DropdownMenuItem> _unitMenuItems;
   bool _showValidationError = false;
-  bool _showErrorUi = false;
+  final _inputKey = GlobalKey(debugLabel: 'inputText');
+  bool _showErrorUI = false;
 
   @override
   void initState() {
@@ -37,10 +40,10 @@ class _UnitConverterState extends State<UnitConverter> {
   }
 
   @override
-  void didUpdateWidget(UnitConverter oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  void didUpdateWidget(UnitConverter old) {
+    super.didUpdateWidget(old);
     // We update our [DropdownMenuItem] units when we switch [Categories].
-    if (oldWidget.category != widget.category) {
+    if (old.category != widget.category) {
       _createDropdownMenuItems();
       _setDefaults();
     }
@@ -94,13 +97,16 @@ class _UnitConverterState extends State<UnitConverter> {
   }
 
   Future<void> _updateConversion() async {
+    // Our API has a handy convert function, so we can use that for
+    // the Currency [Category]
     if (widget.category.name == apiCategory['name']) {
       final api = Api();
       final conversion = await api.convert(apiCategory['route'],
           _inputValue.toString(), _fromValue.name, _toValue.name);
+      // API error or not connected to the internet
       if (conversion == null) {
         setState(() {
-          _showErrorUi = true;
+          _showErrorUI = true;
         });
       } else {
         setState(() {
@@ -108,6 +114,7 @@ class _UnitConverterState extends State<UnitConverter> {
         });
       }
     } else {
+      // For the static units, we do the conversion ourselves
       setState(() {
         _convertedValue = _format(
             _inputValue * (_toValue.conversion / _fromValue.conversion));
@@ -137,7 +144,7 @@ class _UnitConverterState extends State<UnitConverter> {
 
   Unit _getUnit(String unitName) {
     return widget.category.units.firstWhere(
-      (Unit unit) {
+          (Unit unit) {
         return unit.name == unitName;
       },
       orElse: null,
@@ -177,8 +184,8 @@ class _UnitConverterState extends State<UnitConverter> {
       child: Theme(
         // This sets the color of the [DropdownMenuItem]
         data: Theme.of(context).copyWith(
-              canvasColor: Colors.grey[50],
-            ),
+          canvasColor: Colors.grey[50],
+        ),
         child: DropdownButtonHideUnderline(
           child: ButtonTheme(
             alignedDropdown: true,
@@ -196,8 +203,8 @@ class _UnitConverterState extends State<UnitConverter> {
 
   @override
   Widget build(BuildContext context) {
-    if(widget.category.units == null || (widget.category.name ==
-        apiCategory['name'] && _showErrorUi)){
+    if (widget.category.units == null ||
+        (widget.category.name == apiCategory['name'] && _showErrorUI)) {
       return SingleChildScrollView(
         child: Container(
           margin: _padding,
@@ -227,6 +234,7 @@ class _UnitConverterState extends State<UnitConverter> {
         ),
       );
     }
+
     final input = Padding(
       padding: _padding,
       child: Column(
@@ -236,6 +244,7 @@ class _UnitConverterState extends State<UnitConverter> {
           // accepts numbers and calls the onChanged property on update.
           // You can read more about it here: https://flutter.io/text-input
           TextField(
+            key: _inputKey,
             style: Theme.of(context).textTheme.display1,
             decoration: InputDecoration(
               labelStyle: Theme.of(context).textTheme.display1,
@@ -294,6 +303,8 @@ class _UnitConverterState extends State<UnitConverter> {
       ],
     );
 
+    // Based on the orientation of the parent widget, figure out how to best
+    // lay out our converter.
     return Padding(
       padding: _padding,
       child: OrientationBuilder(
